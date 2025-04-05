@@ -1,11 +1,11 @@
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
+from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash
+
 from extensions import db
 from forms import LoginForm, RegisterForm
-from models import User, Visitor
-from werkzeug.security import generate_password_hash
-from flask_migrate import Migrate
-
+from models import User
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -44,9 +44,9 @@ def register():
         hashed_password = generate_password_hash(form.password.data)
 
         new_user = User(
-            username = form.username.data,
-            email = form.email.data,
-            password_hash = hashed_password
+            username=form.username.data,
+            email=form.email.data,
+            password_hash=hashed_password
         )
 
         db.session.add(new_user)
