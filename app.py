@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
 from extensions import db
 from forms import LoginForm, RegisterForm
-from models import User
+from models import User, Visitor
 from werkzeug.security import generate_password_hash
 from flask_migrate import Migrate
 
