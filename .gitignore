@@ -1,4 +1,5 @@
 .env
+flask.env
 .venv
 
 # Python cache files (anywhere)
