@@ -25,6 +25,9 @@ class User(db.Model, UserMixin):
 
 class Visitor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    pesel = db.Column(db.Integer, nullable=False, unique=True)
+    phone_number = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150))
     first_name = db.Column(db.String(150), nullable=False)
     last_name = db.Column(db.String(150), nullable=False)
     last_date_of_visit = db.Column(db.DateTime, default=datetime.now)
