@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 
 
 from extensions import db
-from forms import LoginForm, RegisterForm
+from forms import LoginForm, RegisterForm, AddVisitorForm
 from models import User
 
-load_dotenv()
+load_dotenv("./flask.env")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -66,7 +66,8 @@ def register():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    form = AddVisitorForm()
+    return render_template("dashboard.html", form=form)
 
 
 if __name__ == '__main__':

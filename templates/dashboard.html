@@ -1,17 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login</title>
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="w-full max-w-md">
-        <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full">
-            Add a Visitor
-        </button>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Hotel Admin Dashboard</h1>
+
+        <!-- Visitors Table -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Visitors</h2>
+            <table class="min-w-full bg-white border">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border">Name</th>
+                        <th class="py-2 px-4 border">Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitor in visitors %}
+                    <tr>
+                        <td class="py-2 px-4 border">{{ visitor.name }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.email }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add Visitor Form -->
+        <div class="mb-8 bg-white p-6 rounded shadow">
+            <h2 class="text-2xl font-semibold mb-4">Add Visitor</h2>
+            <form method="POST" action="{{ url_for('dashboard') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-4">
+                    {{ form.first_name.label(class="block text-gray-700") }}
+                    {{ form.first_name(class="w-full border rounded py-2 px-3") }}
+                </div>
+                <div class="mb-4">
+                    {{ form.last_name.label(class="block text-gray-700") }}
+                    {{ form.last_name(class="w-full border rounded py-2 px-3") }}
+                </div>
+                <div class="mb-4">
+                    {{ form.email.label(class="block text-gray-700") }}
+                    {{ form.email(class="w-full border rounded py-2 px-3") }}
+                </div>
+                <div>
+                    {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded") }}
+                </div>
+            </form>
+        </div>
+
+        {# Campaign Management Form
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-2xl font-semibold mb-4">Create Marketing Campaign</h2>
+            <form method="POST" action="{{ url_for('dashboard') }}">
+                {{ campaign_form.hidden_tag() }}
+                <div class="mb-4">
+                    {{ campaign_form.campaign_name.label(class="block text-gray-700") }}
+                    {{ campaign_form.campaign_name(class="w-full border rounded py-2 px-3") }}
+                </div>
+                <div class="mb-4">
+                    {{ campaign_form.description.label(class="block text-gray-700") }}
+                    {{ campaign_form.description(class="w-full border rounded py-2 px-3") }}
+                </div>
+                <div>
+                    {{ campaign_form.submit(class="bg-green-500 text-white py-2 px-4 rounded") }}
+                </div>
+            </form>
+        </div>
+        #}
+
+        {# Existing Campaigns List
+        <div class="mt-8">
+            <h2 class="text-2xl font-semibold mb-4">Existing Campaigns</h2>
+            <ul class="list-disc pl-5">
+                {% for campaign in campaigns %}
+                <li class="mb-2">
+                    <strong>{{ campaign.campaign_name }}</strong>: {{ campaign.description }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        #}
     </div>
 </body>
 </html>
