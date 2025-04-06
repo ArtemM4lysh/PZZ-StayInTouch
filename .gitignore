@@ -1,2 +1,10 @@
 .env
 .venv
+
+# Python cache files (anywhere)
+__pycache__/
+*.py[cod]
+
+# Just in case any appear inside migrations/
+migrations/__pycache__/
+migrations/*.pyc
