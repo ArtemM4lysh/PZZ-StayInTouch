@@ -1,15 +1,21 @@
+import os
+
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+
 
 from extensions import db
 from forms import LoginForm, RegisterForm
 from models import User
 
+load_dotenv()
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://flask_user:123234345@localhost/my_flask_db'
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
