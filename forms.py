@@ -23,12 +23,12 @@ class RegisterForm(FlaskForm):
 
 
 class AddVisitorForm(FlaskForm):
-    first_name = StringField('First Name', validators=[DataRequired()],
-                             render_kw={"placeholder": "First Name"})
-    last_name = StringField('Last Name', validators=[DataRequired()],
-                            render_kw={"placeholder": "Last Name"})
+    name = StringField('Name', validators=[DataRequired()],
+                             render_kw={"placeholder": "Name"})
+    phone_number = StringField('Phone Number', validators=[DataRequired()],
+                               render_kw={"placeholder": "Phone Number"})
     email = StringField('Email', validators=[DataRequired(), Email()],
                         render_kw={"placeholder": "you@example.com"})
     pesel = StringField('Pesel', validators=[DataRequired()],
                         render_kw={"placeholder": "Pesel"})
-    submit = SubmitField('Register')
+    submit = SubmitField('Add Visitor')

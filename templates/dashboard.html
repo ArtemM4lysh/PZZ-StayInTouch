@@ -10,82 +10,60 @@
     <div class="container mx-auto">
         <h1 class="text-3xl font-bold mb-6">Hotel Admin Dashboard</h1>
 
-        <!-- Visitors Table -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4">Visitors</h2>
-            <table class="min-w-full bg-white border">
+<!-- Main Content Area with 50/50 Split -->
+<div class="flex gap-6 mb-8">
+    <!-- Add Visitor Form - Left Side (50%) -->
+    <div class="w-1/2 bg-white p-6 rounded shadow">
+        <h2 class="text-2xl font-semibold mb-4">Add Visitor</h2>
+        <form method="POST" action="{{ url_for('dashboard') }}">
+            {{ form.hidden_tag() }}
+            <div class="mb-4">
+                {{ form.name.label(class="block text-gray-700") }}
+                {{ form.name(class="w-full border rounded py-2 px-3") }}
+            </div>
+            <div class="mb-4">
+                {{ form.email.label(class="block text-gray-700") }}
+                {{ form.email(class="w-full border rounded py-2 px-3") }}
+            </div>
+             <div class="mb-4">
+                {{ form.phone_number.label(class="block text-gray-700") }}
+                {{ form.phone_number(class="w-full border rounded py-2 px-3") }}
+            </div>
+            <div class="mb-4">
+                {{ form.pesel.label(class="block text-gray-700") }}
+                {{ form.pesel(class="w-full border rounded py-2 px-3") }}
+            </div>
+            <div>
+                {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded") }}
+            </div>
+        </form>
+    </div>
+
+    <!-- Visitors Table - Right Side (50%) -->
+    <div class="w-1/2">
+        <h2 class="text-2xl font-semibold mb-4">Visitors</h2>
+        <div class="bg-white rounded shadow overflow-hidden">
+            <table class="min-w-full">
                 <thead>
                     <tr>
                         <th class="py-2 px-4 border">Name</th>
                         <th class="py-2 px-4 border">Email</th>
+                        <th class="py-2 px-4 border">Phone</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for visitor in visitors %}
                     <tr>
-                        <td class="py-2 px-4 border">{{ visitor.name }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.name}}</td>
                         <td class="py-2 px-4 border">{{ visitor.email }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.phone_number }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
-        <!-- Add Visitor Form -->
-        <div class="mb-8 bg-white p-6 rounded shadow">
-            <h2 class="text-2xl font-semibold mb-4">Add Visitor</h2>
-            <form method="POST" action="{{ url_for('dashboard') }}">
-                {{ form.hidden_tag() }}
-                <div class="mb-4">
-                    {{ form.first_name.label(class="block text-gray-700") }}
-                    {{ form.first_name(class="w-full border rounded py-2 px-3") }}
-                </div>
-                <div class="mb-4">
-                    {{ form.last_name.label(class="block text-gray-700") }}
-                    {{ form.last_name(class="w-full border rounded py-2 px-3") }}
-                </div>
-                <div class="mb-4">
-                    {{ form.email.label(class="block text-gray-700") }}
-                    {{ form.email(class="w-full border rounded py-2 px-3") }}
-                </div>
-                <div>
-                    {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded") }}
-                </div>
-            </form>
-        </div>
-
-        {# Campaign Management Form
-        <div class="bg-white p-6 rounded shadow">
-            <h2 class="text-2xl font-semibold mb-4">Create Marketing Campaign</h2>
-            <form method="POST" action="{{ url_for('dashboard') }}">
-                {{ campaign_form.hidden_tag() }}
-                <div class="mb-4">
-                    {{ campaign_form.campaign_name.label(class="block text-gray-700") }}
-                    {{ campaign_form.campaign_name(class="w-full border rounded py-2 px-3") }}
-                </div>
-                <div class="mb-4">
-                    {{ campaign_form.description.label(class="block text-gray-700") }}
-                    {{ campaign_form.description(class="w-full border rounded py-2 px-3") }}
-                </div>
-                <div>
-                    {{ campaign_form.submit(class="bg-green-500 text-white py-2 px-4 rounded") }}
-                </div>
-            </form>
-        </div>
-        #}
-
-        {# Existing Campaigns List
-        <div class="mt-8">
-            <h2 class="text-2xl font-semibold mb-4">Existing Campaigns</h2>
-            <ul class="list-disc pl-5">
-                {% for campaign in campaigns %}
-                <li class="mb-2">
-                    <strong>{{ campaign.campaign_name }}</strong>: {{ campaign.description }}
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        #}
+    </div>
+</div>
     </div>
 </body>
 </html>

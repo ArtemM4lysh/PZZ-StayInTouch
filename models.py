@@ -1,4 +1,6 @@
 from datetime import datetime
+from email.policy import default
+from enum import unique, Enum
 
 from extensions import db
 from flask_login import UserMixin
@@ -25,10 +27,23 @@ class User(db.Model, UserMixin):
 
 class Visitor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    pesel = db.Column(db.Integer, nullable=False, unique=True)
+    pesel = db.Column(db.String(265), nullable=False, unique=True)
     phone_number = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150))
-    first_name = db.Column(db.String(150), nullable=False)
-    last_name = db.Column(db.String(150), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    last_visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'))
     last_date_of_visit = db.Column(db.DateTime, default=datetime.now)
     total_visits = db.Column(db.Integer)
+
+class RoomType(Enum):
+    VIP = "VIP"
+    BUSINESS = "Business"
+    BUDGET = "Budget"
+
+
+class Visits(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    start_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    end_date = db.Column(db.DateTime)
+    hotel_id = db.Column(db.Integer, nullable=False)
+    room_type = db.Column(db.Enum(RoomType), nullable=False)

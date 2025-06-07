@@ -3,13 +3,14 @@ import os
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required
 from flask_migrate import Migrate
+from sqlalchemy.util import methods_equivalent
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 
 
 from extensions import db
 from forms import LoginForm, RegisterForm, AddVisitorForm
-from models import User
+from models import User, Visitor
 
 load_dotenv("./flask.env")
 
@@ -49,7 +50,7 @@ def register():
     if form.validate_on_submit():
         # Check if a user with the given email already exists
         existing_user = User.query.filter_by(email=form.email.data).first()
-        
+
         if existing_user:
             return redirect(url_for("register"))  # Redirect back to the registration page
 
@@ -69,11 +70,23 @@ def register():
     return render_template("register.html", form=form)
 
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
     form = AddVisitorForm()
-    return render_template("dashboard.html", form=form)
+    visitors = Visitor.query.all()
+    if form.validate_on_submit():
+        hashed_pesel = generate_password_hash(form.pesel.data)
+        new_visitor = Visitor(
+            name = form.name.data,
+            phone_number = form.phone_number.data,
+            email = form.email.data,
+            pesel = hashed_pesel
+        )
+
+        db.session.add(new_visitor)
+        db.session.commit()
+    return render_template("dashboard.html", form=form, visitors=visitors)
 
 
 if __name__ == '__main__':
