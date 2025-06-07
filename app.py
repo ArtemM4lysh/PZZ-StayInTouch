@@ -1,12 +1,10 @@
 import os
 
-from flask import Flask, render_template, redirect, url_for, flash
+from dotenv import load_dotenv
+from flask import Flask, render_template, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, login_required
 from flask_migrate import Migrate
-from sqlalchemy.util import methods_equivalent
 from werkzeug.security import generate_password_hash
-from dotenv import load_dotenv
-
 
 from extensions import db
 from forms import LoginForm, RegisterForm, AddVisitorForm
@@ -81,12 +79,61 @@ def dashboard():
             name = form.name.data,
             phone_number = form.phone_number.data,
             email = form.email.data,
-            pesel = hashed_pesel
+            pesel = hashed_pesel,
+            check_in_date=form.check_in_date.data,
+            check_out_date=form.check_out_date.data
         )
 
         db.session.add(new_visitor)
         db.session.commit()
     return render_template("dashboard.html", form=form, visitors=visitors)
+
+
+@app.route('/add_visitor_ajax', methods=['POST'])
+@login_required
+def add_visitor_ajax():
+    form = AddVisitorForm()
+
+    if form.validate_on_submit():
+        try:
+            hashed_pesel = generate_password_hash(form.pesel.data)
+            new_visitor = Visitor(
+                name=form.name.data,
+                phone_number=form.phone_number.data,
+                email=form.email.data,
+                pesel=hashed_pesel,
+                check_in_date=form.check_in_date.data,
+                check_out_date=form.check_out_date.data
+            )
+
+            db.session.add(new_visitor)
+            db.session.commit()
+
+            # Return success response with visitor data
+            return jsonify({
+                'success': True,
+                'visitor': {
+                    'name': new_visitor.name,
+                    'email': new_visitor.email,
+                    'phone_number': new_visitor.phone_number,
+                    'check_in_date': new_visitor.check_in_date.strftime(
+                        '%Y-%m-%d') if new_visitor.check_in_date else 'N/A',
+                    'check_out_date': new_visitor.check_out_date.strftime(
+                        '%Y-%m-%d') if new_visitor.check_out_date else 'N/A'
+                }
+            })
+        except Exception:
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'errors': {'general': ['An error occurred while saving the visitor.']}
+            }), 500
+    else:
+        # Return validation errors
+        return jsonify({
+            'success': False,
+            'errors': form.errors
+        }), 400
 
 
 if __name__ == '__main__':

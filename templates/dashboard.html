@@ -5,6 +5,8 @@
     <title>Admin Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Flatpickr CSS for date picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body class="bg-gray-100 p-8">
     <div class="container mx-auto">
@@ -15,7 +17,7 @@
     <!-- Add Visitor Form - Left Side (50%) -->
     <div class="w-1/2 bg-white p-6 rounded shadow">
         <h2 class="text-2xl font-semibold mb-4">Add Visitor</h2>
-        <form method="POST" action="{{ url_for('dashboard') }}">
+        <form id="visitor-form" method="POST">
             {{ form.hidden_tag() }}
             <div class="mb-4">
                 {{ form.name.label(class="block text-gray-700") }}
@@ -33,10 +35,21 @@
                 {{ form.pesel.label(class="block text-gray-700") }}
                 {{ form.pesel(class="w-full border rounded py-2 px-3") }}
             </div>
+            <div class="mb-4">
+                {{ form.check_in_date.label(class="block text-gray-700") }}
+                {{ form.check_in_date(class="w-full border rounded py-2 px-3 date-picker", id="check_in_date") }}
+            </div>
+            <div class="mb-4">
+                {{ form.check_out_date.label(class="block text-gray-700") }}
+                {{ form.check_out_date(class="w-full border rounded py-2 px-3 date-picker", id="check_out_date") }}
+            </div>
             <div>
-                {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded") }}
+                {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600") }}
             </div>
         </form>
+        
+        <!-- Success/Error Messages -->
+        <div id="message-container" class="mt-4"></div>
     </div>
 
     <!-- Visitors Table - Right Side (50%) -->
@@ -49,14 +62,18 @@
                         <th class="py-2 px-4 border">Name</th>
                         <th class="py-2 px-4 border">Email</th>
                         <th class="py-2 px-4 border">Phone</th>
+                        <th class="py-2 px-4 border">Check-in</th>
+                        <th class="py-2 px-4 border">Check-out</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="visitors-table-body">
                     {% for visitor in visitors %}
                     <tr>
                         <td class="py-2 px-4 border">{{ visitor.name}}</td>
                         <td class="py-2 px-4 border">{{ visitor.email }}</td>
                         <td class="py-2 px-4 border">{{ visitor.phone_number }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.check_in_date.strftime('%Y-%m-%d') if visitor.check_in_date else 'N/A' }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.check_out_date.strftime('%Y-%m-%d') if visitor.check_out_date else 'N/A' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -65,5 +82,113 @@
     </div>
 </div>
     </div>
+
+    <!-- Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Initialize date pickers
+        flatpickr("#check_in_date", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            altInput: true,
+            altFormat: "F j, Y",
+            onChange: function(selectedDates, dateStr, instance) {
+                const checkOutPicker = document.querySelector("#check_out_date")._flatpickr;
+                if (checkOutPicker) {
+                    checkOutPicker.set("minDate", dateStr);
+                }
+            }
+        });
+
+        flatpickr("#check_out_date", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            altInput: true,
+            altFormat: "F j, Y"
+        });
+
+        // AJAX form submission
+        document.getElementById('visitor-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent normal form submission
+            
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('input[type="submit"]');
+            
+            // Disable submit button and show loading
+            submitButton.disabled = true;
+            submitButton.value = 'Adding...';
+            
+            fetch('{{ url_for("add_visitor_ajax") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new row to table
+                    addVisitorToTable(data.visitor);
+                    
+                    // Clear form
+                    this.reset();
+                    
+                    // Show success message
+                    showMessage('Visitor added successfully!', 'success');
+                } else {
+                    // Show error messages
+                    let errorMsg = 'Please fix the following errors: ';
+                    for (let field in data.errors) {
+                        errorMsg += data.errors[field].join(', ') + ' ';
+                    }
+                    showMessage(errorMsg, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.value = 'Add Visitor';
+            });
+        });
+
+        function addVisitorToTable(visitor) {
+            const tableBody = document.getElementById('visitors-table-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="py-2 px-4 border">${visitor.name}</td>
+                <td class="py-2 px-4 border">${visitor.email}</td>
+                <td class="py-2 px-4 border">${visitor.phone_number}</td>
+                <td class="py-2 px-4 border">${visitor.check_in_date}</td>
+                <td class="py-2 px-4 border">${visitor.check_out_date}</td>
+            `;
+            
+            // Add a nice animation
+            newRow.style.backgroundColor = '#dcfce7';
+            tableBody.appendChild(newRow);
+            
+            // Remove highlight after 2 seconds
+            setTimeout(() => {
+                newRow.style.backgroundColor = '';
+            }, 2000);
+        }
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('message-container');
+            const alertClass = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
+            
+            messageContainer.innerHTML = `
+                <div class="border px-4 py-3 rounded ${alertClass}" role="alert">
+                    <span class="block sm:inline">${message}</span>
+                </div>
+            `;
+            
+            // Clear message after 5 seconds
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

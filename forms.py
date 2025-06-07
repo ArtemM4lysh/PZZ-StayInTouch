@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
+from wtforms.fields.datetime import DateField
 from wtforms.validators import DataRequired, Email, Length
 
 
@@ -31,4 +32,6 @@ class AddVisitorForm(FlaskForm):
                         render_kw={"placeholder": "you@example.com"})
     pesel = StringField('Pesel', validators=[DataRequired()],
                         render_kw={"placeholder": "Pesel"})
+    check_in_date = DateField('Check-in Date', validators=[DataRequired()], render_kw={"placeholder": "Check-in Date"})
+    check_out_date = DateField('Check-out Date', render_kw={"placeholder": "Check-out Date"})
     submit = SubmitField('Add Visitor')

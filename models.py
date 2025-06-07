@@ -31,9 +31,12 @@ class Visitor(db.Model):
     phone_number = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150))
     name = db.Column(db.String(150), nullable=False)
-    last_visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'))
+    check_in_date = db.Column(db.Date, nullable=False)
+    check_out_date = db.Column(db.Date, nullable=False)
+    last_visit_id = db.Column(db.Integer)
     last_date_of_visit = db.Column(db.DateTime, default=datetime.now)
     total_visits = db.Column(db.Integer)
+
 
 class RoomType(Enum):
     VIP = "VIP"
@@ -43,7 +46,7 @@ class RoomType(Enum):
 
 class Visits(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
-    start_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
-    end_date = db.Column(db.DateTime)
+    check_in_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    check_out_date = db.Column(db.DateTime)
     hotel_id = db.Column(db.Integer, nullable=False)
     room_type = db.Column(db.Enum(RoomType), nullable=False)
