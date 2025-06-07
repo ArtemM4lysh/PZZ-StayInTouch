@@ -47,8 +47,14 @@ def login():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data)
+        # Check if a user with the given email already exists
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        
+        if existing_user:
+            return redirect(url_for("register"))  # Redirect back to the registration page
 
+        # Proceed with user creation
+        hashed_password = generate_password_hash(form.password.data)
         new_user = User(
             username=form.username.data,
             email=form.email.data,
