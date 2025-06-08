@@ -1,0 +1,780 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visitors Management - StayInTouch</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Flatpickr CSS for date picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-lg border-b border-gray-200">
+        <div class="container mx-auto px-8 py-4">
+            <div class="flex justify-between items-center">
+                <!-- Logo Section -->
+                <div class="flex items-center">
+                    <a href="/dashboard" class="flex items-center hover:opacity-80 transition-opacity">
+                        <div class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xl">
+                            StayInTouch
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <nav class="flex space-x-4">
+                    <a href="/dashboard" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors font-medium">
+                        Dashboard
+                    </a>
+                    <a href="/campaigns" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors font-medium">
+                        Campaigns
+                    </a>
+                    <a href="/visitors" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors font-medium">
+                        Visitors
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-6">Visitors Management</h1>
+
+        <!-- Search Section -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Search Visitors</h2>
+
+            <form id="search-form" class="space-y-4">
+                <!-- Basic Search -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Search Term</label>
+                        <input type="text" id="search_term" name="search_term"
+                               placeholder="Name, Email, Phone, or PESEL"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Hotel ID</label>
+                        <input type="number" id="hotel_id" name="hotel_id"
+                               placeholder="Hotel ID"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Room Type</label>
+                        <select id="room_type" name="room_type"
+                                class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Room Types</option>
+                            <option value="VIP">VIP</option>
+                            <option value="BUSINESS">Business</option>
+                            <option value="BUDGET">Budget</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Date Range Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Check-in From</label>
+                        <input type="date" id="check_in_from" name="check_in_from"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Check-in To</label>
+                        <input type="date" id="check_in_to" name="check_in_to"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Check-out From</label>
+                        <input type="date" id="check_out_from" name="check_out_from"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Check-out To</label>
+                        <input type="date" id="check_out_to" name="check_out_to"
+                               class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div class="border-t pt-4">
+                    <h3 class="text-lg font-medium mb-3">Advanced Filters</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Minimum Visits</label>
+                            <input type="number" id="min_visits" name="min_visits" min="0"
+                                   placeholder="Minimum total visits"
+                                   class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Last Visit From</label>
+                            <input type="date" id="last_visit_from" name="last_visit_from"
+                                   class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Last Visit To</label>
+                            <input type="date" id="last_visit_to" name="last_visit_to"
+                                   class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Buttons -->
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit"
+                            class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors font-medium">
+                        Search Visitors
+                    </button>
+                    <button type="button" id="clear-search"
+                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition-colors font-medium">
+                        Clear Search
+                    </button>
+                    <button type="button" id="export-results"
+                            class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors font-medium">
+                        Export Results
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Campaign Controls -->
+        <div id="campaign-controls" class="bg-white p-4 rounded-lg shadow-lg mb-4 hidden">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-semibold">Campaign Selection</h3>
+                    <p class="text-sm text-gray-600">
+                        <span id="selected-count">0</span> visitors selected for campaign
+                    </p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="select-all-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors text-sm">
+                        Select All
+                    </button>
+                    <button id="clear-selection-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm">
+                        Clear Selection
+                    </button>
+                    <button id="start-campaign-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors text-sm" disabled>
+                        Start Campaign
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-semibold">Search Results</h2>
+                    <div class="text-gray-600">
+                        <span id="results-count">0</span> visitors found
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="hidden p-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <p class="mt-2 text-gray-600">Searching...</p>
+            </div>
+
+            <!-- Results Table -->
+            <div id="results-container" class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">
+                                <input type="checkbox" id="select-all-checkbox" class="rounded">
+                            </th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Name</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Email</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Phone</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">PESEL</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Check-in</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Check-out</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Total Visits</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Last Visit</th>
+                            <th class="py-3 px-4 text-left font-medium text-gray-700 border-b">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                        <!-- Results will be populated here -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="p-8 text-center text-gray-500">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <p class="text-lg">No visitors found</p>
+                    <p class="text-sm">Try adjusting your search criteria</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="p-6 border-t bg-gray-50 hidden">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        Showing <span id="page-start">1</span> to <span id="page-end">10</span> of <span id="total-results">0</span> results
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="prev-page" class="px-3 py-1 border rounded text-sm hover:bg-gray-100 disabled:opacity-50" disabled>
+                            Previous
+                        </button>
+                        <span id="page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be populated here -->
+                        </span>
+                        <button id="next-page" class="px-3 py-1 border rounded text-sm hover:bg-gray-100 disabled:opacity-50" disabled>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visitor Detail Modal -->
+    <div id="visitor-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold">Visitor Details</h3>
+                        <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="modal-content" class="p-6">
+                    <!-- Visitor details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Modal -->
+    <div id="campaign-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-semibold">Create Email Campaign</h3>
+                        <button id="close-campaign-modal" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <form id="campaign-form">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Campaign Name</label>
+                            <input type="text" id="campaign-name" name="campaign_name" required
+                                   placeholder="Enter campaign name"
+                                   class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Email Subject</label>
+                            <input type="text" id="email-subject" name="subject" required
+                                   placeholder="Enter email subject"
+                                   class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Email Message</label>
+                            <textarea id="email-message" name="message" rows="6" required
+                                      placeholder="Enter your email message here..."
+                                      class="w-full border rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600">
+                                This campaign will be sent to <span id="modal-selected-count" class="font-semibold">0</span> selected visitors.
+                            </p>
+                        </div>
+
+                        <div class="flex space-x-4">
+                            <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors">
+                                Send Campaign
+                            </button>
+                            <button type="button" id="cancel-campaign" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentResults = [];
+        let selectedVisitors = new Set();
+
+        // Search form submission
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            performSearch();
+        });
+
+        // Campaign controls
+        document.getElementById('select-all-btn').addEventListener('click', selectAllVisitors);
+        document.getElementById('clear-selection-btn').addEventListener('click', clearSelection);
+        document.getElementById('start-campaign-btn').addEventListener('click', startCampaign);
+        document.getElementById('select-all-checkbox').addEventListener('change', toggleSelectAll);
+
+        // Clear search
+        document.getElementById('clear-search').addEventListener('click', function() {
+            document.getElementById('search-form').reset();
+            document.getElementById('results-table-body').innerHTML = '';
+            document.getElementById('results-count').textContent = '0';
+            document.getElementById('empty-state').style.display = 'block';
+            document.getElementById('pagination').classList.add('hidden');
+            clearSelection();
+        });
+
+        // Export results
+        document.getElementById('export-results').addEventListener('click', function() {
+            if (currentResults.length === 0) {
+                alert('No results to export. Please perform a search first.');
+                return;
+            }
+            exportToCsv();
+        });
+
+        // Modal controls
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('visitor-modal').classList.add('hidden');
+        });
+
+        document.getElementById('close-campaign-modal').addEventListener('click', function() {
+            document.getElementById('campaign-modal').classList.add('hidden');
+        });
+
+        document.getElementById('cancel-campaign').addEventListener('click', function() {
+            document.getElementById('campaign-modal').classList.add('hidden');
+        });
+
+        // Campaign form submission
+        document.getElementById('campaign-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitCampaign();
+        });
+
+        function performSearch(page = 1) {
+            const formData = new FormData(document.getElementById('search-form'));
+            formData.append('page', page);
+
+            // Show loading
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('empty-state').style.display = 'none';
+
+            fetch('/api/search_visitors', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentResults = data.visitors || [];
+                displayResults(data);
+                updatePagination(data);
+                updateCampaignControls();
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                alert('An error occurred while searching. Please try again.');
+            })
+            .finally(() => {
+                document.getElementById('loading').classList.add('hidden');
+            });
+        }
+
+        function displayResults(data) {
+            const tbody = document.getElementById('results-table-body');
+            const resultsCount = document.getElementById('results-count');
+
+            if (!data.visitors || data.visitors.length === 0) {
+                tbody.innerHTML = '';
+                resultsCount.textContent = '0';
+                document.getElementById('empty-state').style.display = 'block';
+                document.getElementById('campaign-controls').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('empty-state').style.display = 'none';
+            resultsCount.textContent = data.total || data.visitors.length;
+
+            tbody.innerHTML = data.visitors.map(visitor => `
+                <tr class="hover:bg-gray-50 border-b ${selectedVisitors.has(visitor.id) ? 'bg-blue-50' : ''}">
+                    <td class="py-3 px-4">
+                        <input type="checkbox"
+                               class="visitor-checkbox rounded"
+                               data-visitor-id="${visitor.id}"
+                               ${selectedVisitors.has(visitor.id) ? 'checked' : ''}
+                               ${!visitor.email ? 'disabled title="No email address"' : ''}
+                               onchange="toggleVisitorSelection(${visitor.id})">
+                    </td>
+                    <td class="py-3 px-4">${visitor.name || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.email || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.phone_number || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.pesel || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.check_in_date || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.check_out_date || 'N/A'}</td>
+                    <td class="py-3 px-4">${visitor.total_visits || '0'}</td>
+                    <td class="py-3 px-4">${visitor.last_date_of_visit || 'N/A'}</td>
+                    <td class="py-3 px-4">
+                        <button onclick="viewVisitorDetails(${visitor.id})"
+                                class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('campaign-controls').classList.remove('hidden');
+        }
+
+        function toggleVisitorSelection(visitorId) {
+            const visitor = currentResults.find(v => v.id === visitorId);
+            if (!visitor || !visitor.email) return;
+
+            if (selectedVisitors.has(visitorId)) {
+                selectedVisitors.delete(visitorId);
+            } else {
+                selectedVisitors.add(visitorId);
+            }
+
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+            highlightSelectedRows();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const visitorCheckboxes = document.querySelectorAll('.visitor-checkbox:not(:disabled)');
+
+            if (selectAllCheckbox.checked) {
+                visitorCheckboxes.forEach(checkbox => {
+                    const visitorId = parseInt(checkbox.dataset.visitorId);
+                    selectedVisitors.add(visitorId);
+                    checkbox.checked = true;
+                });
+            } else {
+                visitorCheckboxes.forEach(checkbox => {
+                    const visitorId = parseInt(checkbox.dataset.visitorId);
+                    selectedVisitors.delete(visitorId);
+                    checkbox.checked = false;
+                });
+            }
+
+            updateSelectedCount();
+            highlightSelectedRows();
+        }
+
+        function selectAllVisitors() {
+            currentResults.forEach(visitor => {
+                if (visitor.email) {
+                    selectedVisitors.add(visitor.id);
+                }
+            });
+
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+            highlightSelectedRows();
+
+            // Update checkboxes
+            document.querySelectorAll('.visitor-checkbox:not(:disabled)').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+
+        function clearSelection() {
+            selectedVisitors.clear();
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+            highlightSelectedRows();
+
+            // Update checkboxes
+            document.querySelectorAll('.visitor-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedVisitors.size;
+            document.getElementById('modal-selected-count').textContent = selectedVisitors.size;
+
+            const startCampaignBtn = document.getElementById('start-campaign-btn');
+            startCampaignBtn.disabled = selectedVisitors.size === 0;
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const enabledCheckboxes = document.querySelectorAll('.visitor-checkbox:not(:disabled)');
+            const checkedCheckboxes = document.querySelectorAll('.visitor-checkbox:not(:disabled):checked');
+
+            if (enabledCheckboxes.length === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (checkedCheckboxes.length === enabledCheckboxes.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else if (checkedCheckboxes.length > 0) {
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        function highlightSelectedRows() {
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const checkbox = row.querySelector('.visitor-checkbox');
+                if (checkbox && checkbox.checked) {
+                    row.classList.add('bg-blue-50');
+                } else {
+                    row.classList.remove('bg-blue-50');
+                }
+            });
+        }
+
+        function updateCampaignControls() {
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+            highlightSelectedRows();
+        }
+
+        function startCampaign() {
+            if (selectedVisitors.size === 0) {
+                alert('Please select at least one visitor with an email address.');
+                return;
+            }
+
+            document.getElementById('campaign-modal').classList.remove('hidden');
+        }
+
+        function submitCampaign() {
+            const campaignName = document.getElementById('campaign-name').value.trim();
+            const subject = document.getElementById('email-subject').value.trim();
+            const message = document.getElementById('email-message').value.trim();
+
+            if (!campaignName || !subject || !message) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const campaignData = {
+                campaign_name: campaignName,
+                subject: subject,
+                message: message,
+                visitor_ids: Array.from(selectedVisitors)
+            };
+
+            // Show loading
+            const submitBtn = document.querySelector('#campaign-form button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Campaign...';
+
+            fetch('/api/create_campaign', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(campaignData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Now send the campaign
+                    return fetch(`/api/send_campaign/${data.campaign_id}`, {
+                        method: 'POST'
+                    });
+                } else {
+                    throw new Error(data.error || 'Failed to create campaign');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('campaign-modal').classList.add('hidden');
+                    document.getElementById('campaign-form').reset();
+                    clearSelection();
+                } else {
+                    throw new Error(data.error || 'Failed to send campaign');
+                }
+            })
+            .catch(error => {
+                console.error('Campaign error:', error);
+                alert('An error occurred: ' + error.message);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Campaign';
+            });
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+
+            if (data.total_pages && data.total_pages > 1) {
+                pagination.classList.remove('hidden');
+                currentPage = data.current_page || 1;
+                totalPages = data.total_pages;
+
+                // Update pagination info
+                document.getElementById('page-start').textContent = ((currentPage - 1) * (data.per_page || 10)) + 1;
+                document.getElementById('page-end').textContent = Math.min(currentPage * (data.per_page || 10), data.total);
+                document.getElementById('total-results').textContent = data.total;
+
+                // Update pagination buttons
+                document.getElementById('prev-page').disabled = currentPage <= 1;
+                document.getElementById('next-page').disabled = currentPage >= totalPages;
+
+                generatePageNumbers();
+            } else {
+                pagination.classList.add('hidden');
+            }
+        }
+
+        function generatePageNumbers() {
+            const pageNumbers = document.getElementById('page-numbers');
+            pageNumbers.innerHTML = '';
+
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.className = `px-3 py-1 border rounded text-sm ${i === currentPage ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`;
+                button.onclick = () => performSearch(i);
+                pageNumbers.appendChild(button);
+            }
+        }
+
+        // Pagination controls
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) performSearch(currentPage - 1);
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            if (currentPage < totalPages) performSearch(currentPage + 1);
+        });
+
+        function viewVisitorDetails(visitorId) {
+            fetch(`/api/visitor/${visitorId}`)
+            .then(response => response.json())
+            .then(data => {
+                displayVisitorModal(data);
+            })
+            .catch(error => {
+                console.error('Error fetching visitor details:', error);
+                alert('Error loading visitor details');
+            });
+        }
+
+        function displayVisitorModal(visitor) {
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Personal Information</h4>
+                        <div class="space-y-3">
+                            <div><strong>Name:</strong> ${visitor.name || 'N/A'}</div>
+                            <div><strong>Email:</strong> ${visitor.email || 'N/A'}</div>
+                            <div><strong>Phone:</strong> ${visitor.phone_number || 'N/A'}</div>
+                            <div><strong>PESEL:</strong> ${visitor.pesel || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Visit Information</h4>
+                        <div class="space-y-3">
+                            <div><strong>Check-in Date:</strong> ${visitor.check_in_date || 'N/A'}</div>
+                            <div><strong>Check-out Date:</strong> ${visitor.check_out_date || 'N/A'}</div>
+                            <div><strong>Total Visits:</strong> ${visitor.total_visits || '0'}</div>
+                            <div><strong>Last Visit:</strong> ${visitor.last_date_of_visit || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+                ${visitor.visits && visitor.visits.length > 0 ? `
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold mb-4">Visit History</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-2 px-4 border text-left">Check-in</th>
+                                        <th class="py-2 px-4 border text-left">Check-out</th>
+                                        <th class="py-2 px-4 border text-left">Hotel ID</th>
+                                        <th class="py-2 px-4 border text-left">Room Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${visitor.visits.map(visit => `
+                                        <tr>
+                                            <td class="py-2 px-4 border">${visit.check_in_date || 'N/A'}</td>
+                                            <td class="py-2 px-4 border">${visit.check_out_date || 'N/A'}</td>
+                                            <td class="py-2 px-4 border">${visit.hotel_id || 'N/A'}</td>
+                                            <td class="py-2 px-4 border">${visit.room_type || 'N/A'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('visitor-modal').classList.remove('hidden');
+        }
+
+        function exportToCsv() {
+            const headers = ['Name', 'Email', 'Phone', 'PESEL', 'Check-in', 'Check-out', 'Total Visits', 'Last Visit'];
+            const csvContent = [
+                headers.join(','),
+                ...currentResults.map(visitor => [
+                    `"${visitor.name || ''}"`,
+                    `"${visitor.email || ''}"`,
+                    `"${visitor.phone_number || ''}"`,
+                    `"${visitor.pesel || ''}"`,
+                    `"${visitor.check_in_date || ''}"`,
+                    `"${visitor.check_out_date || ''}"`,
+                    `"${visitor.total_visits || '0'}"`,
+                    `"${visitor.last_date_of_visit || ''}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `visitors_search_results_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Load all visitors on page load
+        window.addEventListener('load', function() {
+            performSearch();
+        });
+    </script>
+</body>
+</html>
