@@ -39,6 +39,35 @@
         </div>
     </header>
 
+    <!-- Existing Visitor Popup Modal -->
+    <div id="existingVisitorModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-2">Visitor Already Exists!</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500 mb-3">We found an existing visitor with this PESEL:</p>
+                    <div id="existingVisitorInfo" class="text-left bg-gray-50 p-3 rounded text-sm">
+                        <!-- Visitor info will be populated here -->
+                    </div>
+                    <p class="text-sm text-gray-500 mt-3">Is this the same person making a new visit?</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="confirmExistingVisitor" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                        Yes
+                    </button>
+                    <button id="cancelExistingVisitor" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        No
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <div class="container mx-auto p-8">
         <h1 class="text-3xl font-bold mb-6">Hotel Admin Dashboard</h1>
@@ -64,7 +93,7 @@
             </div>
             <div class="mb-4">
                 {{ form.pesel.label(class="block text-gray-700") }}
-                {{ form.pesel(class="w-full border rounded py-2 px-3") }}
+                {{ form.pesel(class="w-full border rounded py-2 px-3", id="pesel-input") }}
             </div>
             <div class="mb-4">
                 {{ form.check_in_date.label(class="block text-gray-700") }}
@@ -73,6 +102,14 @@
             <div class="mb-4">
                 {{ form.check_out_date.label(class="block text-gray-700") }}
                 {{ form.check_out_date(class="w-full border rounded py-2 px-3 date-picker", id="check_out_date") }}
+            </div>
+            <div class="mb-4">
+                {{ form.hotel_id.label(class="block text-gray-700") }}
+                {{ form.hotel_id(class="w-full border rounded py-2 px-3") }}
+            </div>
+            <div class="mb-4">
+                {{ form.room_type.label(class="block text-gray-700") }}
+                {{ form.room_type(class="w-full border rounded py-2 px-3") }}
             </div>
             <div>
                 {{ form.submit(class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600") }}
@@ -93,8 +130,11 @@
                         <th class="py-2 px-4 border">Name</th>
                         <th class="py-2 px-4 border">Email</th>
                         <th class="py-2 px-4 border">Phone</th>
+                        <th class="py-2 px-4 border">Hotel ID</th>
+                        <th class="py-2 px-4 border">Room Type</th>
                         <th class="py-2 px-4 border">Check-in</th>
                         <th class="py-2 px-4 border">Check-out</th>
+                        <th class="py-2 px-4 border">Visits</th>
                     </tr>
                 </thead>
                 <tbody id="visitors-table-body">
@@ -103,8 +143,11 @@
                         <td class="py-2 px-4 border">{{ visitor.name}}</td>
                         <td class="py-2 px-4 border">{{ visitor.email }}</td>
                         <td class="py-2 px-4 border">{{ visitor.phone_number }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.last_visit.hotel_id if visitor.last_visit else 'N/A' }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.last_visit.room_type.value if visitor.last_visit and visitor.last_visit.room_type else 'N/A' }}</td>
                         <td class="py-2 px-4 border">{{ visitor.check_in_date.strftime('%Y-%m-%d') if visitor.check_in_date else 'N/A' }}</td>
                         <td class="py-2 px-4 border">{{ visitor.check_out_date.strftime('%Y-%m-%d') if visitor.check_out_date else 'N/A' }}</td>
+                        <td class="py-2 px-4 border">{{ visitor.total_visits or 0 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -117,6 +160,8 @@
     <!-- Flatpickr JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        let existingVisitorData = null;
+
         // Initialize date pickers
         flatpickr("#check_in_date", {
             dateFormat: "Y-m-d",
@@ -138,12 +183,150 @@
             altFormat: "F j, Y"
         });
 
-        // AJAX form submission
+        function checkExistingVisitor(pesel) {
+            const formData = new FormData();
+            formData.append('pesel', pesel);
+
+            return fetch('{{ url_for("check_visitor_exists") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    existingVisitorData = data.visitor;
+                    showExistingVisitorModal(data.visitor);
+                    return true; // Visitor exists
+                }
+                return false; // Visitor doesn't exist
+            })
+            .catch(error => {
+                console.error('Error checking visitor:', error);
+                return false;
+            });
+        }
+
+        function showExistingVisitorModal(visitor) {
+            const modal = document.getElementById('existingVisitorModal');
+            const visitorInfo = document.getElementById('existingVisitorInfo');
+            
+            visitorInfo.innerHTML = `
+                <div class="space-y-2">
+                    <div><strong>Name:</strong> ${visitor.name}</div>
+                    <div><strong>Email:</strong> ${visitor.email}</div>
+                    <div><strong>Phone:</strong> ${visitor.phone_number}</div>
+                    <div><strong>Total Visits:</strong> ${visitor.total_visits}</div>
+                    <div><strong>Last Visit:</strong> ${visitor.last_visit_date || 'N/A'}</div>
+                    <div><strong>Last Hotel:</strong> ${visitor.last_hotel_id || 'N/A'}</div>
+                    <div><strong>Last Room Type:</strong> ${visitor.last_room_type || 'N/A'}</div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function hideExistingVisitorModal() {
+            const modal = document.getElementById('existingVisitorModal');
+            modal.classList.add('hidden');
+            existingVisitorData = null;
+        }
+
+        // Modal event listeners
+        document.getElementById('confirmExistingVisitor').addEventListener('click', function() {
+            addVisitForExistingVisitor();
+            hideExistingVisitorModal();
+
+        });
+
+        document.getElementById('cancelExistingVisitor').addEventListener('click', function() {
+            hideExistingVisitorModal();
+            // Clear the PESEL field to allow new entry
+            document.getElementById('pesel-input').value = '';
+        });
+
+        function addVisitForExistingVisitor() {
+            const form = document.getElementById('visitor-form');
+            const formData = new FormData(form);
+            formData.append('visitor_id', existingVisitorData.id);
+            
+            // Debug: Log the form data being sent
+            console.log('Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
+            const submitButton = form.querySelector('input[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.value = 'Adding Visit...';
+
+            fetch('{{ url_for("add_visit_existing_visitor") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    updateVisitorInTable(data.visitor);
+                    form.reset();
+                    showMessage(`Visit added successfully! Total visits: ${data.visitor.total_visits}`, 'success');
+                } else {
+                    let errorMsg = 'Please fix the following errors: ';
+                    for (let field in data.errors) {
+                        errorMsg += data.errors[field].join(', ') + ' ';
+                    }
+                    showMessage(errorMsg, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.value = 'Add Visitor';
+            });
+        }
+
+        // AJAX form submission - now checks for existing visitor when button is pressed
         document.getElementById('visitor-form').addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent normal form submission
             
-            const formData = new FormData(this);
+            // Check if this PESEL already exists when the form is submitted
+            const pesel = document.getElementById('pesel-input').value.trim();
             const submitButton = this.querySelector('input[type="submit"]');
+            
+            if (pesel.length >= 11) {
+                // Check for existing visitor first
+                submitButton.disabled = true;
+                submitButton.value = 'Checking...';
+
+                checkExistingVisitor(pesel).then(visitorExists => {
+                    if (visitorExists) {
+                        // Visitor exists, modal is already shown
+                        submitButton.disabled = false;
+                        submitButton.value = 'Add Visitor';
+                    } else {
+                        // Visitor doesn't exist, proceed with normal submission
+                        submitNewVisitor();
+                    }
+                });
+            } else {
+                // No PESEL or invalid PESEL, proceed with normal submission
+                submitNewVisitor();
+            }
+        });
+
+        function submitNewVisitor() {
+            const form = document.getElementById('visitor-form');
+            const formData = new FormData(form);
+            const submitButton = form.querySelector('input[type="submit"]');
             
             // Disable submit button and show loading
             submitButton.disabled = true;
@@ -160,7 +343,7 @@
                     addVisitorToTable(data.visitor);
                     
                     // Clear form
-                    this.reset();
+                    form.reset();
                     
                     // Show success message
                     showMessage('Visitor added successfully!', 'success');
@@ -182,7 +365,7 @@
                 submitButton.disabled = false;
                 submitButton.value = 'Add Visitor';
             });
-        });
+        }
 
         function addVisitorToTable(visitor) {
             const tableBody = document.getElementById('visitors-table-body');
@@ -191,8 +374,11 @@
                 <td class="py-2 px-4 border">${visitor.name}</td>
                 <td class="py-2 px-4 border">${visitor.email}</td>
                 <td class="py-2 px-4 border">${visitor.phone_number}</td>
+                <td class="py-2 px-4 border">${visitor.hotel_id}</td>
+                <td class="py-2 px-4 border">${visitor.room_type}</td>
                 <td class="py-2 px-4 border">${visitor.check_in_date}</td>
                 <td class="py-2 px-4 border">${visitor.check_out_date}</td>
+                <td class="py-2 px-4 border">${visitor.total_visits || 1}</td>
             `;
             
             // Add a nice animation
@@ -203,6 +389,39 @@
             setTimeout(() => {
                 newRow.style.backgroundColor = '';
             }, 2000);
+        }
+
+        function updateVisitorInTable(visitor) {
+            const tableBody = document.getElementById('visitors-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            
+            // Try to find existing row and update it, or add new one
+            let updated = false;
+            rows.forEach(row => {
+                const nameCell = row.querySelector('td:first-child');
+                if (nameCell && nameCell.textContent.trim() === visitor.name) {
+                    // Update existing row
+                    row.innerHTML = `
+                        <td class="py-2 px-4 border">${visitor.name}</td>
+                        <td class="py-2 px-4 border">${visitor.email}</td>
+                        <td class="py-2 px-4 border">${visitor.phone_number}</td>
+                        <td class="py-2 px-4 border">${visitor.hotel_id}</td>
+                        <td class="py-2 px-4 border">${visitor.room_type}</td>
+                        <td class="py-2 px-4 border">${visitor.check_in_date}</td>
+                        <td class="py-2 px-4 border">${visitor.check_out_date}</td>
+                        <td class="py-2 px-4 border">${visitor.total_visits}</td>
+                    `;
+                    row.style.backgroundColor = '#dcfce7';
+                    setTimeout(() => {
+                        row.style.backgroundColor = '';
+                    }, 2000);
+                    updated = true;
+                }
+            });
+            
+            if (!updated) {
+                addVisitorToTable(visitor);
+            }
         }
 
         function showMessage(message, type) {

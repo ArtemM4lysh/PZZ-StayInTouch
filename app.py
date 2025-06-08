@@ -88,16 +88,37 @@ def dashboard():
     visitors = Visitor.query.all()
     if form.validate_on_submit():
         hashed_pesel = generate_password_hash(form.pesel.data)
+        
+        # Create visitor
         new_visitor = Visitor(
             name=form.name.data,
             phone_number=form.phone_number.data,
             email=form.email.data,
             pesel=hashed_pesel,
             check_in_date=form.check_in_date.data,
-            check_out_date=form.check_out_date.data
+            check_out_date=form.check_out_date.data,
+            total_visits=1
         )
 
         db.session.add(new_visitor)
+        db.session.flush()  # Get the visitor ID
+
+        # Create visit record
+        new_visit = Visits(
+            visitor_id=new_visitor.id,
+            check_in_date=datetime.combine(form.check_in_date.data, datetime.min.time()),
+            check_out_date=datetime.combine(form.check_out_date.data, datetime.min.time()) if form.check_out_date.data else None,
+            hotel_id=form.hotel_id.data,
+            room_type=RoomType(form.room_type.data)
+        )
+
+        db.session.add(new_visit)
+        db.session.flush()  # Get the visit ID
+
+        # Update visitor's last visit reference
+        new_visitor.last_visit_id = new_visit.id
+        new_visitor.last_date_of_visit = new_visit.check_in_date
+
         db.session.commit()
     return render_template("dashboard.html", form=form, visitors=visitors)
 
@@ -109,16 +130,36 @@ def add_visitor_ajax():
 
     if form.validate_on_submit():
         try:
+            # Create visitor
             new_visitor = Visitor(
                 name=form.name.data,
                 phone_number=form.phone_number.data,
                 email=form.email.data,
                 pesel=form.pesel.data,
                 check_in_date=form.check_in_date.data,
-                check_out_date=form.check_out_date.data
+                check_out_date=form.check_out_date.data,
+                total_visits=1
             )
 
             db.session.add(new_visitor)
+            db.session.flush()  # Get the visitor ID
+
+            # Create visit record
+            new_visit = Visits(
+                visitor_id=new_visitor.id,
+                check_in_date=datetime.combine(form.check_in_date.data, datetime.min.time()),
+                check_out_date=datetime.combine(form.check_out_date.data, datetime.min.time()) if form.check_out_date.data else None,
+                hotel_id=form.hotel_id.data,
+                room_type=RoomType(form.room_type.data)
+            )
+
+            db.session.add(new_visit)
+            db.session.flush()  # Get the visit ID
+
+            # Update visitor's last visit reference
+            new_visitor.last_visit_id = new_visit.id
+            new_visitor.last_date_of_visit = new_visit.check_in_date
+
             db.session.commit()
 
             # Return success response with visitor data
@@ -128,14 +169,17 @@ def add_visitor_ajax():
                     'name': new_visitor.name,
                     'email': new_visitor.email,
                     'phone_number': new_visitor.phone_number,
+                    'hotel_id': new_visit.hotel_id,
+                    'room_type': new_visit.room_type.value,
                     'check_in_date': new_visitor.check_in_date.strftime(
                         '%Y-%m-%d') if new_visitor.check_in_date else 'N/A',
                     'check_out_date': new_visitor.check_out_date.strftime(
                         '%Y-%m-%d') if new_visitor.check_out_date else 'N/A'
                 }
             })
-        except Exception:
+        except Exception as e:
             db.session.rollback()
+            print(f"Error adding visitor: {e}")
             return jsonify({
                 'success': False,
                 'errors': {'general': ['An error occurred while saving the visitor.']}
@@ -285,16 +329,14 @@ def get_visitor_details(visitor_id):
 
         # Get all visits for this visitor
         visits = []
-        if visitor.last_visit_id:
-            # For now, we'll get all visits - in a real app you might want to link visitors to visits properly
-            all_visits = Visits.query.all()  # You may want to add a visitor_id field to Visits model
-            visits = [{
-                'id': visit.id,
-                'check_in_date': visit.check_in_date.strftime('%Y-%m-%d %H:%M') if visit.check_in_date else None,
-                'check_out_date': visit.check_out_date.strftime('%Y-%m-%d %H:%M') if visit.check_out_date else None,
-                'hotel_id': visit.hotel_id,
-                'room_type': visit.room_type.value if visit.room_type else None
-            } for visit in all_visits[:5]]  # Limit to last 5 visits for demo
+        visitor_visits = Visits.query.filter_by(visitor_id=visitor.id).order_by(Visits.check_in_date.desc()).all()
+        visits = [{
+            'id': visit.id,
+            'check_in_date': visit.check_in_date.strftime('%Y-%m-%d %H:%M') if visit.check_in_date else None,
+            'check_out_date': visit.check_out_date.strftime('%Y-%m-%d %H:%M') if visit.check_out_date else None,
+            'hotel_id': visit.hotel_id,
+            'room_type': visit.room_type.value if visit.room_type else None
+        } for visit in visitor_visits]
 
         visitor_data = {
             'id': visitor.id,
@@ -474,6 +516,125 @@ def send_email(to_email, subject, message):
     except Exception as e:
         print(f"Failed to send email to {to_email}: {e}")
         raise e
+
+
+@app.route('/api/check_visitor_exists', methods=['POST'])
+@login_required
+def check_visitor_exists():
+    try:
+        pesel = request.form.get('pesel', '').strip()
+
+        if not pesel:
+            return jsonify({'exists': False})
+
+        # Check if visitor with this PESEL already exists
+        existing_visitor = Visitor.query.filter_by(pesel=pesel).first()
+
+        if existing_visitor:
+            # Get their last visit info
+            last_visit = None
+            if existing_visitor.last_visit_id:
+                last_visit = Visits.query.get(existing_visitor.last_visit_id)
+
+            return jsonify({
+                'exists': True,
+                'visitor': {
+                    'id': existing_visitor.id,
+                    'name': existing_visitor.name,
+                    'email': existing_visitor.email,
+                    'phone_number': existing_visitor.phone_number,
+                    'total_visits': existing_visitor.total_visits or 0,
+                    'last_check_in': existing_visitor.check_in_date.strftime(
+                        '%Y-%m-%d') if existing_visitor.check_in_date else None,
+                    'last_check_out': existing_visitor.check_out_date.strftime(
+                        '%Y-%m-%d') if existing_visitor.check_out_date else None,
+                    'last_hotel_id': last_visit.hotel_id if last_visit else None,
+                    'last_room_type': last_visit.room_type.value if last_visit and last_visit.room_type else None,
+                    'last_visit_date': existing_visitor.last_date_of_visit.strftime(
+                        '%Y-%m-%d %H:%M') if existing_visitor.last_date_of_visit else None
+                }
+            })
+        else:
+            return jsonify({'exists': False})
+
+    except Exception as e:
+        print(f"Error checking visitor: {e}")
+        return jsonify({'exists': False, 'error': 'An error occurred'})
+
+
+@app.route('/api/add_visit_existing_visitor', methods=['POST'])
+@login_required
+def add_visit_existing_visitor():
+    form = AddVisitorForm()
+
+    if form.validate_on_submit():
+        try:
+            visitor_id = request.form.get('visitor_id')
+            existing_visitor = Visitor.query.get(visitor_id)
+
+            if not existing_visitor:
+                return jsonify({
+                    'success': False,
+                    'errors': {'general': ['Visitor not found.']}
+                }), 400
+
+            # Create new visit record
+            new_visit = Visits(
+                visitor_id=existing_visitor.id,
+                check_in_date=datetime.combine(form.check_in_date.data, datetime.min.time()),
+                check_out_date=datetime.combine(form.check_out_date.data,
+                                                datetime.min.time()) if form.check_out_date.data else None,
+                hotel_id=form.hotel_id.data,
+                room_type=RoomType(form.room_type.data)
+            )
+
+            db.session.add(new_visit)
+            db.session.flush()  # Get the visit ID
+
+            # Update visitor info
+            existing_visitor.total_visits = (existing_visitor.total_visits or 0) + 1
+            existing_visitor.last_visit_id = new_visit.id
+            existing_visitor.last_date_of_visit = new_visit.check_in_date
+            existing_visitor.check_in_date = form.check_in_date.data
+            existing_visitor.check_out_date = form.check_out_date.data
+
+            # Update contact info if different
+            if form.phone_number.data != existing_visitor.phone_number:
+                existing_visitor.phone_number = form.phone_number.data
+            if form.email.data != existing_visitor.email:
+                existing_visitor.email = form.email.data
+            if form.name.data != existing_visitor.name:
+                existing_visitor.name = form.name.data
+
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'visitor': {
+                    'name': existing_visitor.name,
+                    'email': existing_visitor.email,
+                    'phone_number': existing_visitor.phone_number,
+                    'hotel_id': new_visit.hotel_id,
+                    'room_type': new_visit.room_type.value,
+                    'check_in_date': existing_visitor.check_in_date.strftime('%Y-%m-%d'),
+                    'check_out_date': existing_visitor.check_out_date.strftime(
+                        '%Y-%m-%d') if existing_visitor.check_out_date else 'N/A',
+                    'total_visits': existing_visitor.total_visits
+                }
+            })
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error adding visit: {e}")
+            return jsonify({
+                'success': False,
+                'errors': {'general': ['An error occurred while saving the visit.']}
+            }), 500
+    else:
+        return jsonify({
+            'success': False,
+            'errors': form.errors
+        }), 400
 
 
 if __name__ == '__main__':

@@ -33,9 +33,12 @@ class Visitor(db.Model):
     name = db.Column(db.String(150), nullable=False)
     check_in_date = db.Column(db.Date, nullable=False)
     check_out_date = db.Column(db.Date, nullable=False)
-    last_visit_id = db.Column(db.Integer)
+    last_visit_id = db.Column(db.Integer, db.ForeignKey('visits.id'))
     last_date_of_visit = db.Column(db.DateTime, default=datetime.now)
-    total_visits = db.Column(db.Integer)
+    total_visits = db.Column(db.Integer, default=1)
+
+    # Relationship to get the last visit details
+    last_visit = db.relationship('Visits', foreign_keys=[last_visit_id])
 
 
 class RoomType(Enum):
@@ -46,10 +49,14 @@ class RoomType(Enum):
 
 class Visits(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
-    check_in_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    visitor_id = db.Column(db.Integer, db.ForeignKey('visitor.id'), nullable=False)
+    check_in_date = db.Column(db.DateTime, nullable=False)
     check_out_date = db.Column(db.DateTime)
     hotel_id = db.Column(db.Integer, nullable=False)
     room_type = db.Column(db.Enum(RoomType), nullable=False)
+
+    # Relationship
+    visitor = db.relationship('Visitor', backref='visits', foreign_keys=[visitor_id])
 
 
 class CampaignStatus(Enum):
